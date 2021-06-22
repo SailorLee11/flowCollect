@@ -11,41 +11,40 @@ from time import strftime, localtime
 
 print(strftime("%Y-%m-%d %H:%M:%S", localtime())+"开始处理")
 
-fp = open("./log/2021-05-25.log")
-malware_ip =set()
-for line in fp.readlines():  # 遍历每一行
-    date_str = line[43:81]  # 每行取前14个字母，作为下面新建文件的名称
-    # content = line[14:]  # 每行取第15个字符后的所有字符，作为新建文件的内容
-    ip = date_str.split(" ")
-    # ipv4 = ip[0]
-    malware_ip.add(ip[0])
-
-fp.close()
-
+# 需要采集的数据包
 srccapfile = './data_flow/5_25_flow.pcap'
+# 需要保存的pcap包
 malware_pcap = './malware_flow/test.pcap'
 
-# pr = PcapReader(srccapfile) #逐行读取package包
-# packet = pr.read_packet()
-id = 0
-pkts = rdpcap(srccapfile)
-for pkt in pkts:
+def main_process():
 
-# while (packet): #如何判断读取结束
-    print("pcaket id:",id)
+    fp = open("./log/2021-05-25.log")
+    malware_ip =set()
+    for line in fp.readlines():  # 遍历每一行
+        date_str = line[43:81]  # 每行取前14个字母，作为下面新建文件的名称
+        # content = line[14:]  # 每行取第15个字符后的所有字符，作为新建文件的内容
+        ip = date_str.split(" ")
+        # ipv4 = ip[0]
+        malware_ip.add(ip[0])
+
+    fp.close()
+
+
+
+    # pr = PcapReader(srccapfile) #逐行读取package包
     # packet = pr.read_packet()
+    id = 0
+    pkts = rdpcap(srccapfile)
 
-    if (pkt.payload.name == "IP"):
-        source = pkt.payload.src
-        destination = pkt.payload.dst
-        for ip in malware_ip:
-            if (source == ip or destination == ip):
-                scapy.wrpcap(malware_pcap, pkt, append=True)
+    for pkt in pkts:
+        print("pcaket id:",id)
+        if (pkt.payload.name == "IP"):
+            source = pkt.payload.src
+            destination = pkt.payload.dst
+            for ip in malware_ip:
+                if (source == ip or destination == ip):
+                    scapy.wrpcap(malware_pcap, pkt, append=True)
+        id=id+1
 
-    id=id+1
-
-    # try:
-    #    packet= pr.read_packet() #读取下一个package包
-    # except EOFError:
-    #    print("no more pcap")
-    #    break
+if __name__ == '__main__':
+    main_process()
